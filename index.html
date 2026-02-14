@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Om Sai Telecom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: #f5f7fa;
+    }
+
+    header {
+      background: linear-gradient(135deg, #111, #1e3c72);
+      color: white;
+      padding: 20px 10%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-weight: 600;
+    }
+
+    .admin-btn {
+      background: white;
+      color: black;
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 50px 10%;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      color: white;
+    }
+
+    .hero h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .search-box {
+      margin: 20px auto;
+      max-width: 400px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 30px;
+      border: none;
+      outline: none;
+      text-align: center;
+    }
+
+    .brands {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .brands button {
+      padding: 8px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      background: #111;
+      color: white;
+    }
+
+    .container {
+      padding: 30px 10%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+
+    .price {
+      font-weight: 600;
+      margin-top: 5px;
+    }
+
+    .in {
+      color: green;
+      font-weight: bold;
+    }
+
+    .out {
+      color: red;
+      font-weight: bold;
+    }
+
+    .contact {
+      display: block;
+      margin-top: 10px;
+      padding: 8px;
+      background: #1e3c72;
+      color: white;
+      text-align: center;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #111;
+      color: white;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Om Sai Telecom</h1>
+  <div class="admin-btn" onclick="toggleAdmin()">Admin</div>
+</header>
+
+<section class="hero">
+  <h2>Latest Smartphones Available</h2>
+  <p>Best Deals • Trusted Shop • Genuine Products</p>
+
+  <div class="search-box">
+    <input type="text" placeholder="Search phone..." onkeyup="searchPhone(this.value)">
+  </div>
+</section>
+
+<div class="brands">
+  <button onclick="filterBrand('all')">All</button>
+  <button onclick="filterBrand('Samsung')">Samsung</button>
+  <button onclick="filterBrand('Apple')">Apple</button>
+  <button onclick="filterBrand('Redmi')">Redmi</button>
+  <button onclick="filterBrand('Vivo')">Vivo</button>
+</div>
+
+<div class="container" id="phoneList"></div>
+
+<footer>
+  © 2026 Om Sai Telecom | All Rights Reserved
+</footer>
+
+<!-- Firebase Script -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getFirestore, collection, getDocs } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAnONGxODGcQO6GXGeCAuWRaLS2msld-Nk",
+  authDomain: "phone-shop-ee106.firebaseapp.com",
+  projectId: "phone-shop-ee106",
+  storageBucket: "phone-shop-ee106.firebasestorage.app",
+  messagingSenderId: "343163884895",
+  appId: "1:343163884895:web:2c59820ea71b2ab1d452ea"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allPhones = [];
+const phoneList = document.getElementById("phoneList");
+
+async function loadPhones() {
+  const querySnapshot = await getDocs(collection(db, "phones"));
+  allPhones = [];
+  querySnapshot.forEach(docSnap => {
+    const phone = docSnap.data();
+    phone.id = docSnap.id;
+    allPhones.push(phone);
+  });
+  displayPhones(allPhones);
+}
+
+function displayPhones(data) {
+  phoneList.innerHTML = "";
+  data.forEach(phone => {
+    phoneList.innerHTML += `
+      <div class="card">
+        <img src="${phone.image}">
+        <h3>${phone.name}</h3>
+        <p class="price">₹${phone.price}</p>
+        <p class="${phone.stock ? 'in' : 'out'}">
+          ${phone.stock ? 'In Stock' : 'Out of Stock'}
+        </p>
+        <a class="contact" href="https://wa.me/919999999999">Contact</a>
+      </div>
+    `;
+  });
+}
+
+window.filterBrand = function(brand) {
+  if (brand === "all") displayPhones(allPhones);
+  else displayPhones(allPhones.filter(p => p.brand === brand));
+}
+
+window.searchPhone = function(text) {
+  const filtered = allPhones.filter(p =>
+    p.name.toLowerCase().includes(text.toLowerCase())
+  );
+  displayPhones(filtered);
+}
+
+window.toggleAdmin = function() {
+  alert("Admin Panel will be separate secure page.");
+}
+
+loadPhones();
+
+</script>
+
+</body>
+</html>

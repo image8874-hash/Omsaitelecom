@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Om Sai Telecom - Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f6f9;
+      margin: 0;
+    }
+
+    .login-box, .admin-panel {
+      max-width: 400px;
+      margin: 80px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: black;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .phone-list {
+      margin-top: 20px;
+    }
+
+    .phone-item {
+      background: #eee;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="login-box" id="loginBox">
+  <h3>Admin Login</h3>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+</div>
+
+<div class="admin-panel" id="adminPanel" style="display:none;">
+  <h3>Add Phone</h3>
+
+  <input type="text" id="brand" placeholder="Brand">
+  <input type="text" id="name" placeholder="Model">
+  <input type="text" id="price" placeholder="Price">
+  <input type="text" id="image" placeholder="Image URL">
+  <select id="stock">
+    <option value="true">In Stock</option>
+    <option value="false">Out of Stock</option>
+  </select>
+
+  <button onclick="addPhone()">Add Phone</button>
+  <button onclick="logout()">Logout</button>
+
+  <div class="phone-list" id="phoneList"></div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAnONGxODGcQO6GXGeCAuWRaLS2msld-Nk",
+  authDomain: "phone-shop-ee106.firebaseapp.com",
+  projectId: "phone-shop-ee106",
+  storageBucket: "phone-shop-ee106.firebasestorage.app",
+  messagingSenderId: "343163884895",
+  appId: "1:343163884895:web:2c59820ea71b2ab1d452ea"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const loginBox = document.getElementById("loginBox");
+const adminPanel = document.getElementById("adminPanel");
+const phoneList = document.getElementById("phoneList");
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    loginBox.style.display = "none";
+    adminPanel.style.display = "block";
+    loadPhones();
+  } else {
+    loginBox.style.display = "block";
+    adminPanel.style.display = "none";
+  }
+});
+
+window.login = async function() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  await signInWithEmailAndPassword(auth, email, password);
+}
+
+window.logout = function() {
+  signOut(auth);
+}
+
+async function loadPhones() {
+  phoneList.innerHTML = "";
+  const querySnapshot = await getDocs(collection(db, "phones"));
+  querySnapshot.forEach(docSnap => {
+    const phone = docSnap.data();
+    phoneList.innerHTML += `
+      <div class="phone-item">
+        ${phone.name} - ₹${phone.price}
+        <button onclick="deletePhone('${docSnap.id}')">Delete</button>
+      </div>
+    `;
+  });
+}
+
+window.addPhone = async function() {
+  const brand = document.getElementById("brand").value;
+  const name = document.getElementById("name").value;
+  const price = document.getElementById("price").value;
+  const image = document.getElementById("image").value;
+  const stock = document.getElementById("stock").value === "true";
+
+  await addDoc(collection(db, "phones"), {
+    brand, name, price, image, stock
+  });
+
+  alert("Phone Added!");
+  loadPhones();
+}
+
+window.deletePhone = async function(id) {
+  await deleteDoc(doc(db, "phones", id));
+  loadPhones();
+}
+
+</script>
+
+</body>
+</html>
