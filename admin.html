@@ -7,20 +7,20 @@
   <style>
     body {
       font-family: Arial;
-      background: #f4f6f9;
+      background: #f2f4f8;
       margin: 0;
     }
 
-    .login-box, .admin-panel {
-      max-width: 400px;
+    .box {
+      max-width: 450px;
       margin: 80px auto;
       background: white;
       padding: 25px;
       border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
     }
 
-    input {
+    input, select {
       width: 100%;
       padding: 10px;
       margin: 8px 0;
@@ -29,42 +29,45 @@
     button {
       width: 100%;
       padding: 10px;
-      background: black;
+      background: #111;
       color: white;
       border: none;
       cursor: pointer;
       margin-top: 10px;
     }
 
-    .phone-list {
-      margin-top: 20px;
-    }
-
     .phone-item {
       background: #eee;
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 8px;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-<div class="login-box" id="loginBox">
+<div class="box" id="loginBox">
   <h3>Admin Login</h3>
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="password" placeholder="Password">
   <button onclick="login()">Login</button>
 </div>
 
-<div class="admin-panel" id="adminPanel" style="display:none;">
-  <h3>Add Phone</h3>
+<div class="box hidden" id="adminPanel">
+  <h3>Om Sai Telecom - Dashboard</h3>
 
   <input type="text" id="brand" placeholder="Brand">
   <input type="text" id="name" placeholder="Model">
   <input type="text" id="price" placeholder="Price">
   <input type="text" id="image" placeholder="Image URL">
+
   <select id="stock">
     <option value="true">In Stock</option>
     <option value="false">Out of Stock</option>
@@ -73,7 +76,8 @@
   <button onclick="addPhone()">Add Phone</button>
   <button onclick="logout()">Logout</button>
 
-  <div class="phone-list" id="phoneList"></div>
+  <h4>Existing Phones</h4>
+  <div id="phoneList"></div>
 </div>
 
 <script type="module">
@@ -103,19 +107,25 @@ const phoneList = document.getElementById("phoneList");
 
 onAuthStateChanged(auth, user => {
   if (user) {
-    loginBox.style.display = "none";
-    adminPanel.style.display = "block";
+    loginBox.classList.add("hidden");
+    adminPanel.classList.remove("hidden");
     loadPhones();
   } else {
-    loginBox.style.display = "block";
-    adminPanel.style.display = "none";
+    loginBox.classList.remove("hidden");
+    adminPanel.classList.add("hidden");
   }
 });
 
 window.login = async function() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  await signInWithEmailAndPassword(auth, email, password);
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("Login Successful");
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 window.logout = function() {
@@ -125,6 +135,7 @@ window.logout = function() {
 async function loadPhones() {
   phoneList.innerHTML = "";
   const querySnapshot = await getDocs(collection(db, "phones"));
+
   querySnapshot.forEach(docSnap => {
     const phone = docSnap.data();
     phoneList.innerHTML += `
